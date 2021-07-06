@@ -38,8 +38,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
 
 # update Python libraries
 RUN python3 -m pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip3 install -U && \
-    python3 -m pip install --upgrade wheel &&\
-    python3 -m pip install numpy pandas --user
+    python3 -m pip install --upgrade wheel
+
+# set R version
+ENV R_VERSION=4.1.0
 
 # set Rprofile
 RUN echo -e "options(bitmapType = 'cairo', repos = c(CRAN = 'https://cran.rstudio.com/'))" > ~/.Rprofile
@@ -55,9 +57,9 @@ PKG_LIBS+=\"-fopenmp\" \n\
 # download and install R
 RUN mkdir -p ~/lib_downloads/R && \
     cd ~/lib_downloads/R && \
-    curl -O --progress-bar https://cran.r-project.org/src/base/R-4/R-4.0.5.tar.gz && \
-    tar zxvf R-4.0.5.tar.gz && \
-    cd R-4.0.5 && \
+    curl -O --progress-bar https://cran.r-project.org/src/base/R-4/R-${R_VERSION}.tar.gz && \
+    tar zxvf R-${R_VERSION}.tar.gz && \
+    cd R-${R_VERSION} && \
     echo -e "\
 MAKE=\"make -j2\" \n\
 \n\
@@ -69,7 +71,7 @@ FCFLAGS=\$F77FLAGS \n\
 FLAGS=\$F77FLAGS \n\
 " > config.site
 
-RUN cd ~/lib_downloads/R/R-4.0.5 && \
+RUN cd ~/lib_downloads/R/R-${R_VERSION} && \
     ./configure --with-readline=no --with-x --with-cairo && \
     make -j2 && \
     make install
